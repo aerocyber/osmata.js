@@ -149,10 +149,88 @@ function getSpecVersion(){
 }
 
 // Feature Get Url by name
-function getUrl(name, data){}
+function getUrl(name, data){
+    let chname = checkforName(data, name);
+    if (chname["Status"] == "Fail") {
+        return {
+            "Status": "Fail",
+            "Detail": name + " is not existing"
+        };
+    } else if (chname["Status"] == "Error"){
+        return {
+            "Status": "Error",
+            "Detail": chname["Detail"]
+        };
+    } else {
+        return {
+            "Status": "Success",
+            "Detail": data[data.indexOf(chname["Detail"])]
+        };
+    }
+}
 
 // Feature Edit name
-function editName(data, oldName, newName){}
+function editName(data, oldName, newName){
+    let chnameold = checkforName(data, oldName);
+    let chnamenew = checkforName(data, newName);
+    if (chnameold["Status"] == "Success") {
+        return {
+            "Status": "Fail",
+            "Detail": oldName + " is existing"
+        };
+    } else if (chnamenew["Status"] == "Success") {
+        return {
+            "Status": "Fail",
+            "Detail": newName + " is existing"
+        };
+    } else if (chnameold["Status"] == "Error"){
+        return {
+            "Status": "Error",
+            "Detail": chnameold["Detail"]
+        };
+    } else if (chnamenew["Status"] == "Error") {
+        return {
+            "Status": "Error",
+            "Detail": chnamenew["Detail"]
+        };
+    } else {
+        data[data.indexOf(chnameold["Detail"])] = newName;
+        return {
+            "Status": "Success",
+            "Detail": data
+        };
+    }
+}
 
 // Feature Edit Url
-function editUrl(data, name, newUrl){}
+function editUrl(data, name, newUrl){
+    let churlold = checkforName(data, name);
+    let churlnew = checkforUrl(data, newUrl);
+    if (churlold["Status"] == "Fail") {
+        return {
+            "Status": "Fail",
+            "Detail": name + " is not existing"
+        };
+    } else if (churlnew["Status"] == "Success") {
+        return {
+            "Status": "Fail",
+            "Detail": newUrl + " is existing"
+        };
+    } else if (churlold["Status"] == "Error"){
+        return {
+            "Status": "Error",
+            "Detail": churlold["Detail"]
+        };
+    } else if (churlnew["Status"] == "Error") {
+        return {
+            "Status": "Error",
+            "Detail": churlnew["Detail"]
+        };
+    } else {
+        data[data.indexOf(churlold["Detail"])] = newUrl;
+        return {
+            "Status": "Success",
+            "Detail": data
+        };
+    }
+}

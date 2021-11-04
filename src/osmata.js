@@ -6,7 +6,7 @@
 
 // Check: name in data
 function checkforName(data, name){
-    if ((data === null)||(name === undefined)){
+    if ((name === null)||(name === undefined)){
         return {
             "Status": "Error",
             "Detail": "name is required"

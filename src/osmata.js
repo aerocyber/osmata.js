@@ -75,7 +75,10 @@ function add(name, url, databaseObject, categories = []) {
       };
     }
   }
-  databaseObject[name] = url;
+  databaseObject[name] = {
+    URL: url,
+    Categories: categories,
+  };
   return {
     Code: {
       Status: "Success",
@@ -122,33 +125,12 @@ function updation(name, url, databaseObject, categories = []) {
   } else if (checkTypeMatch(categories, "Array") != true) {
     return checkTypeMatch(categories, "Array");
   }
-  for (var key in databaseObject) {
-    if (databaseObject[key] == url) {
-      return {
-        Code: {
-          Status: "Error",
-          Type: "URL Exists",
-          On: url,
-        },
-      };
-    } else if (key == name) {
-      databaseObject[name] = url;
-      return {
-        Code: {
-          Status: "Success",
-          Type: "Updated",
-          On: name,
-        },
-      };
-    }
+  if (name in databaseObject) {
+    delete databaseObject[name];
+    return add(name, url, databaseObject, categories);
+  } else {
+    return add(name, url, databaseObject, categories);
   }
-  return {
-    Code: {
-      Status: "Error",
-      Type: "Not Found",
-      On: name,
-    },
-  };
 }
 
 // Feature: Export the DB as omio strucured JSON string.

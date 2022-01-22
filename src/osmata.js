@@ -1,236 +1,286 @@
 /**
-* Copyright ©️ 2021 aerocyber 
-* https://github.com/aerocyber/osmata.js
-* Licensed under the terms of MIT License. 
-*/ 
+ * Copyright ©️ 2021 aerocyber
+ * https://github.com/aerocyber/osmata.js
+ * Licensed under the terms of MIT License.
+ */
 
-// Check: name in data
-function checkforName(data, name){
-    if ((name === null)||(name === undefined)){
-        return {
-            "Status": "Error",
-            "Detail": "name is required"
-        };
-    }
-    if ((data === undefined)||(data === null)){
-        return {
-            "Status": "Error",
-            "Detail": "data is required"
-        };
-    }
-    if (typeof(data) != "object"){
-        return {
-            "Status": "Error",
-            "Detail": "data must be an array"
-        };
-    }
+// Language: javascript
 
-    for (let x = 0; x < data.length; x++) {
-        if (data[x]["Name"] == name){
-            return {
-                "Status": "Success",
-                "Detail": data[x]
-            };
-        }
-    }
+// Use cryptojs to encrypt and decrypt in AES.
+function encrypt(data, key) {
+  return CryptoJS.AES.encrypt(data, key).toString();
+}
+
+// Use cryptojs to encrypt and decrypt in AES.
+function decrypt(data, key) {
+  return CryptoJS.AES.decrypt(data, key).toString(CryptoJS.enc.Utf8);
+}
+
+// Check if cryptojs is loaded.
+if (typeof CryptoJS == "undefined") {
+  var encryption = false;
+} else {
+  var encryption = true;
+}
+
+// Built-In Error Check: Types.
+function checkTypeMatch(variable, expectedType) {
+  if (type(databaseObject) != expectedType) {
     return {
-        "Status": "Fail",
-        "Detail": name + " is not found"
+      Code: {
+        Status: "Error",
+        Type: "TypeError",
+        On: variable,
+      },
     };
+  }
+  return true;
 }
 
-// Check: url in data
-function checkforUrl(data, url){
-    if ((data === null)||(url === undefined)){
-        return {
-            "Status": "Error",
-            "Detail": "url is required"
-        };
-    }
-    if ((data === undefined)||(data === null)){
-        return {
-            "Status": "Error",
-            "Detail": "data is required"
-        };
-    }
-    if (typeof(data) != "object"){
-        return {
-            "Status": "Error",
-            "Detail": "data must be an array"
-        };
-    }
+// Feature: Search for a specific url based on the name property.
+function search(name, databaseObject) {
+  if (checkTypeMatch(name, "String") != true) {
+    return checkTypeMatch(name, "String");
+  } else if (checkTypeMatch(databaseObject, "Object") != true) {
+    return checkTypeMatch(databaseObject, "Object");
+  }
+}
 
-    for (let x = 0; x < data.length; x++) {
-        if (data[x]["Url"] == url){
-            return {
-                "Status": "Success",
-                "Detail": data[x]
-            };
-        }
+// Feature: Add a new Osmation to DB.
+function add(name, url, databaseObject, categories = []) {
+  if (checkTypeMatch(name, "String") != true) {
+    return checkTypeMatch(name, "String");
+  } else if (checkTypeMatch(url, "String") != true) {
+    return checkTypeMatch(url, "String");
+  } else if (checkTypeMatch(categories, "Array") != true) {
+    return checkTypeMatch(categories, "Array");
+  }
+  x = false;
+  for (var key in databaseObject) {
+    if (databaseObject[key] == url) {
+      return {
+        Code: {
+          Status: "Error",
+          Type: "URL Exists",
+          On: url,
+        },
+      };
+    } else if (key == name) {
+      return {
+        Code: {
+          Status: "Error",
+          Type: "Name Exists",
+          On: name,
+        },
+      };
     }
+  }
+  databaseObject[name] = {
+    URL: url,
+    Categories: categories,
+  };
+  return {
+    Code: {
+      Status: "Success",
+      Type: "Added",
+      On: name,
+    },
+  };
+}
+
+// Feature: Delete an existing Osmation by name.
+function del(name, databaseObject) {
+  if (checkTypeMatch(name, "String") != true) {
+    return checkTypeMatch(name, "String");
+  } else if (checkTypeMatch(databaseObject, "Object") != true) {
+    return checkTypeMatch(databaseObject, "Object");
+  }
+  for (var key in databaseObject) {
+    if (databaseObject[key] == name) {
+      delete databaseObject[key];
+      return {
+        Code: {
+          Status: "Success",
+          Type: "Deleted",
+          On: name,
+        },
+      };
+    }
+  }
+  return {
+    Code: {
+      Status: "Error",
+      Type: "Not Found",
+      On: name,
+    },
+  };
+}
+
+// Feature: Update an existing Osmation.
+function updation(name, url, databaseObject, categories = []) {
+  if (checkTypeMatch(name, "String") != true) {
+    return checkTypeMatch(name, "String");
+  } else if (checkTypeMatch(url, "String") != true) {
+    return checkTypeMatch(url, "String");
+  } else if (checkTypeMatch(categories, "Array") != true) {
+    return checkTypeMatch(categories, "Array");
+  }
+  if (name in databaseObject) {
+    delete databaseObject[name];
+    return add(name, url, databaseObject, categories);
+  } else {
+    return add(name, url, databaseObject, categories);
+  }
+}
+
+// Feature: Export the DB as omio strucured JSON string.
+function exportOmio(DBObject, omioPswd = false) {
+  if (checkTypeMatch(DBObject, "Object") != true) {
+    return checkTypeMatch(DBObject, "Object");
+  }
+  if (omioPswd == false) {
+    var data = JSON.stringify(DBObject);
+    var SHA = "";
+    var _v = false;
+  } else {
+    if (checkTypeMatch(omioPswd, "String") != true) {
+      return checkTypeMatch(omioPswd, "String");
+    }
+    if (encryption == true) {
+      var data = encrypt(JSON.stringify(DBObject), omioPswd);
+      var SHA = CryptoJS.SHA256(omioPswd).toString();
+      var _v = true;
+    } else {
+      return {
+        Code: {
+          Status: "Error",
+          Type: "CryptoJS Not Loaded",
+          On: "Omio",
+        },
+      };
+    }
+  }
+
+  var db = {
+    Header: {
+      "Omio Version": "2.0",
+      Restricted: _v,
+      "Password Hash": SHA,
+    },
+    Data: data,
+    Footer: {
+      "End of DB": true,
+    },
+  };
+  return JSON.stringify(db);
+}
+
+// Feature: Import omio DB to DB.
+function importOmio(DBObject, omioJSONString, omioPswd = false) {
+  var db = JSON.parse(omioJSONString);
+  if (checkTypeMatch(DBObject, "Object") != true) {
+    return checkTypeMatch(DBObject, "Object");
+  } else if (checkTypeMatch(omioJSONString, "String") != true) {
+    return checkTypeMatch(omioJSONString, "String");
+  } else if (omioPswd != false || checkTypeMatch(omioPswd, "String") != true) {
+    return checkTypeMatch(omioPswd, "String");
+  }
+  if (db.Header["Omio Version"] != "2.0") {
     return {
-        "Status": "Fail",
-        "Detail": url + " is not found"
+      Code: {
+        Status: "Error",
+        Type: "Invalid Version",
+        On: "Omio",
+      },
     };
-}
-
-// Feature Add Osmation
-function osmate(data, name, url, category) {
-    let chname = checkforName(data, name);
-    let churl = checkforUrl(data, url);
-    if (chname["Status"] == "Success") {
-        return {
-            "Status": "Fail",
-            "Detail": name + " is existing"
-        };
-    } else if (churl["Status"] == "Success") {
-        return {
-            "Status": "Fail",
-            "Detail": url + " is existing"
-        };
-    } else if (chname["Status"] == "Error"){
-        return {
-            "Status": "Error",
-            "Detail": chname["Detail"]
-        };
-    } else if (churl["Status"] == "Error") {
-        return {
-            "Status": "Error",
-            "Detail": churl["Detail"]
-        };
-    } else {
-        let cat;
-        if ((typeof(category) != "object") || (category === undefined) || (category === null)) {
-            cat = [];
-        } else {
-            cat = category;
-        }
-        let db = {
-            "Name": name,
-            "Url": url,
-            "Category": cat
-        };
-        _ = data.push(db);
-        return {
-            "Status": "Success",
-            "Detail": data
-        };
+  }
+  if (db.Header.Restricted == true) {
+    if (omioPswd == false) {
+      return {
+        Code: {
+          Status: "Error",
+          Type: "Password Required",
+          On: "Omio",
+        },
+      };
     }
-}
-
-// Feature Remove Osmation 
-function deosmate(name, data){
-    let chname = checkforName(data, name);
-    if (chname["Status"] == "Fail") {
-        return {
-            "Status": "Fail",
-            "Detail": name + " is not existing"
-        };
-    } else if (chname["Status"] == "Error"){
-        return {
-            "Status": "Error",
-            "Detail": chname["Detail"]
-        };
-    } else {
-        delete data[data.indexOf(chname["Detail"])];
-        return {
-            "Status": "Success",
-            "Detail": data
-        };
+    if (CryptoJS.SHA256(omioPswd).toString() != db.Header["Password Hash"]) {
+      return {
+        Code: {
+          Status: "Error",
+          Type: "Invalid Password",
+          On: "Omio",
+        },
+      };
     }
+    var dbData = decrypt(db.Data, omioPswd);
+  } else {
+    var dbData = db.Data;
+  }
+  var dbData = JSON.parse(dbData);
+  for (var key in dbData) {
+    // If the key is not in the DB, add it.
+    if (DBObject[key] == undefined) {
+      DBObject[key] = dbData[key];
+    }
+  }
+  return {
+    Code: {
+      Status: "Success",
+      Type: "Imported",
+      On: DBObject,
+    },
+  };
 }
 
-// Feature Retrieve Osmata spec version followed 
-function getSpecVersion(){
+// Feature: Open omio string.
+function openOmio(OmioString, omioPswd = false) {
+  var db = JSON.parse(omioJSONString);
+  if (checkTypeMatch(DBObject, "Object") != true) {
+    return checkTypeMatch(DBObject, "Object");
+  } else if (checkTypeMatch(omioJSONString, "String") != true) {
+    return checkTypeMatch(omioJSONString, "String");
+  } else if (omioPswd != false || checkTypeMatch(omioPswd, "String") != true) {
+    return checkTypeMatch(omioPswd, "String");
+  }
+  if (db.Header["Omio Version"] != "2.0") {
     return {
-        "Status": "Success", 
-        "Detail": "osmata-spec version 1.0"
+      Code: {
+        Status: "Error",
+        Type: "Invalid Version",
+        On: "Omio",
+      },
     };
-}
-
-// Feature Get Url by name
-function getUrl(name, data){
-    let chname = checkforName(data, name);
-    if (chname["Status"] == "Fail") {
-        return {
-            "Status": "Fail",
-            "Detail": name + " is not existing"
-        };
-    } else if (chname["Status"] == "Error"){
-        return {
-            "Status": "Error",
-            "Detail": chname["Detail"]
-        };
-    } else {
-        return {
-            "Status": "Success",
-            "Detail": data[data.indexOf(chname["Detail"])]
-        };
+  }
+  if (db.Header.Restricted == true) {
+    if (omioPswd == false) {
+      return {
+        Code: {
+          Status: "Error",
+          Type: "Password Required",
+          On: "Omio",
+        },
+      };
     }
-}
-
-// Feature Edit name
-function editName(data, oldName, newName){
-    let chnameold = checkforName(data, oldName);
-    let chnamenew = checkforName(data, newName);
-    if (chnameold["Status"] == "Success") {
-        return {
-            "Status": "Fail",
-            "Detail": oldName + " is existing"
-        };
-    } else if (chnamenew["Status"] == "Success") {
-        return {
-            "Status": "Fail",
-            "Detail": newName + " is existing"
-        };
-    } else if (chnameold["Status"] == "Error"){
-        return {
-            "Status": "Error",
-            "Detail": chnameold["Detail"]
-        };
-    } else if (chnamenew["Status"] == "Error") {
-        return {
-            "Status": "Error",
-            "Detail": chnamenew["Detail"]
-        };
-    } else {
-        data[data.indexOf(chnameold["Detail"])] = newName;
-        return {
-            "Status": "Success",
-            "Detail": data
-        };
+    if (CryptoJS.SHA256(omioPswd).toString() != db.Header["Password Hash"]) {
+      return {
+        Code: {
+          Status: "Error",
+          Type: "Invalid Password",
+          On: "Omio",
+        },
+      };
     }
-}
-
-// Feature Edit Url
-function editUrl(data, name, newUrl){
-    let churlold = checkforName(data, name);
-    let churlnew = checkforUrl(data, newUrl);
-    if (churlold["Status"] == "Fail") {
-        return {
-            "Status": "Fail",
-            "Detail": name + " is not existing"
-        };
-    } else if (churlnew["Status"] == "Success") {
-        return {
-            "Status": "Fail",
-            "Detail": newUrl + " is existing"
-        };
-    } else if (churlold["Status"] == "Error"){
-        return {
-            "Status": "Error",
-            "Detail": churlold["Detail"]
-        };
-    } else if (churlnew["Status"] == "Error") {
-        return {
-            "Status": "Error",
-            "Detail": churlnew["Detail"]
-        };
-    } else {
-        data[data.indexOf(churlold["Detail"])] = newUrl;
-        return {
-            "Status": "Success",
-            "Detail": data
-        };
-    }
+    var dbData = decrypt(db.Data, omioPswd);
+  } else {
+    var dbData = db.Data;
+  }
+  var dbData = JSON.parse(dbData);
+  return {
+    Code: {
+      Status: "Success",
+      Type: "Opened",
+      On: dbData,
+    },
+  };
 }

@@ -6,23 +6,6 @@
 
 // Language: javascript
 
-// Use cryptojs to encrypt and decrypt in AES.
-function encrypt(data, key) {
-  return CryptoJS.AES.encrypt(data, key).toString();
-}
-
-// Use cryptojs to encrypt and decrypt in AES.
-function decrypt(data, key) {
-  return CryptoJS.AES.decrypt(data, key).toString(CryptoJS.enc.Utf8);
-}
-
-// Check if cryptojs is loaded.
-if (typeof CryptoJS == "undefined") {
-  var encryption = false;
-} else {
-  var encryption = true;
-}
-
 // Built-In Error Check: Types.
 function checkTypeMatch(variable, expectedType) {
   if (type(databaseObject) != expectedType) {
@@ -134,38 +117,13 @@ function updation(name, url, databaseObject, categories = []) {
 }
 
 // Feature: Export the DB as omio strucured JSON string.
-function exportOmio(DBObject, omioPswd = false) {
+function exportOmio(DBObject) {
   if (checkTypeMatch(DBObject, "Object") != true) {
     return checkTypeMatch(DBObject, "Object");
   }
-  if (omioPswd == false) {
-    var data = JSON.stringify(DBObject);
-    var SHA = "";
-    var _v = false;
-  } else {
-    if (checkTypeMatch(omioPswd, "String") != true) {
-      return checkTypeMatch(omioPswd, "String");
-    }
-    if (encryption == true) {
-      var data = encrypt(JSON.stringify(DBObject), omioPswd);
-      var SHA = CryptoJS.SHA256(omioPswd).toString();
-      var _v = true;
-    } else {
-      return {
-        Code: {
-          Status: "Error",
-          Type: "CryptoJS Not Loaded",
-          On: "Omio",
-        },
-      };
-    }
-  }
-
   var db = {
     Header: {
       "Omio Version": "2.0",
-      Restricted: _v,
-      "Password Hash": SHA,
     },
     Data: data,
     Footer: {
@@ -176,16 +134,14 @@ function exportOmio(DBObject, omioPswd = false) {
 }
 
 // Feature: Import omio DB to DB.
-function importOmio(DBObject, omioJSONString, omioPswd = false) {
+function importOmio(DBObject, omioJSONString) {
   var db = JSON.parse(omioJSONString);
   if (checkTypeMatch(DBObject, "Object") != true) {
     return checkTypeMatch(DBObject, "Object");
   } else if (checkTypeMatch(omioJSONString, "String") != true) {
     return checkTypeMatch(omioJSONString, "String");
-  } else if (omioPswd != false || checkTypeMatch(omioPswd, "String") != true) {
-    return checkTypeMatch(omioPswd, "String");
   }
-  if (db.Header["Omio Version"] != "2.0") {
+  if (db.Header["Omio Version"] < "2.0") {
     return {
       Code: {
         Status: "Error",
@@ -194,29 +150,9 @@ function importOmio(DBObject, omioJSONString, omioPswd = false) {
       },
     };
   }
-  if (db.Header.Restricted == true) {
-    if (omioPswd == false) {
-      return {
-        Code: {
-          Status: "Error",
-          Type: "Password Required",
-          On: "Omio",
-        },
-      };
-    }
-    if (CryptoJS.SHA256(omioPswd).toString() != db.Header["Password Hash"]) {
-      return {
-        Code: {
-          Status: "Error",
-          Type: "Invalid Password",
-          On: "Omio",
-        },
-      };
-    }
-    var dbData = decrypt(db.Data, omioPswd);
-  } else {
-    var dbData = db.Data;
-  }
+
+  var dbData = db.Data;
+
   var dbData = JSON.parse(dbData);
   for (var key in dbData) {
     // If the key is not in the DB, add it.
@@ -234,14 +170,12 @@ function importOmio(DBObject, omioJSONString, omioPswd = false) {
 }
 
 // Feature: Open omio string.
-function openOmio(OmioString, omioPswd = false) {
+function openOmio(OmioString) {
   var db = JSON.parse(omioJSONString);
   if (checkTypeMatch(DBObject, "Object") != true) {
     return checkTypeMatch(DBObject, "Object");
   } else if (checkTypeMatch(omioJSONString, "String") != true) {
     return checkTypeMatch(omioJSONString, "String");
-  } else if (omioPswd != false || checkTypeMatch(omioPswd, "String") != true) {
-    return checkTypeMatch(omioPswd, "String");
   }
   if (db.Header["Omio Version"] != "2.0") {
     return {
@@ -252,29 +186,9 @@ function openOmio(OmioString, omioPswd = false) {
       },
     };
   }
-  if (db.Header.Restricted == true) {
-    if (omioPswd == false) {
-      return {
-        Code: {
-          Status: "Error",
-          Type: "Password Required",
-          On: "Omio",
-        },
-      };
-    }
-    if (CryptoJS.SHA256(omioPswd).toString() != db.Header["Password Hash"]) {
-      return {
-        Code: {
-          Status: "Error",
-          Type: "Invalid Password",
-          On: "Omio",
-        },
-      };
-    }
-    var dbData = decrypt(db.Data, omioPswd);
-  } else {
-    var dbData = db.Data;
-  }
+
+  var dbData = db.Data;
+
   var dbData = JSON.parse(dbData);
   return {
     Code: {

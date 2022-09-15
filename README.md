@@ -4,9 +4,9 @@ JS bindings for osmata.
 
 ## About
 
-Version (latest): 0.1.0
+Version (latest): 1.0.0
 Author: aerocyber
-Npm version: 0.1.0
+Npm version: 1.0.0
 LICENSE: MIT License.
 Full License text: See LICENSE file or [https://opensource.org/licenses/MIT](https://opensource.org/licenses/MIT)
 
@@ -18,71 +18,114 @@ npm install osmata
 
 ## Docs
 
-osmata.js acan take care of adding an osmation, editing an osmation, deleting an osmation and creating an omio JSON structure.
+osmata.js can take care of most of the records-related actions: add, delete. 
 
 ### Usage
 
 ```javascript
-import {
-  addOsmation,
-  removeOsmation,
-  editOsmation,
-  createOmio,
-} from "osmata.js";
+import { Osmation, Records } from "osmata";
+
+let osmataObj = Osmation('name', 'https://example.com', ['categories', 'are', 'arrays']);
+let Rec = Records();
+Rec.addRecord(osmataObj);
 ```
 
-### Add data (Osmation): `addOsmation()` function
+## Classes
 
-Function call as: <br>
-`addOsmation(db, name, url, category)`
+### Osmation
 
-Parameters: <br>
+This class is used for creating a record (internally referred to as element/record).
+Requires a `name` and `url`. `categories` is optional and if absent, will use an empty `Array`.
 
-`db`: An `Array` that holds all the other database records (Osmations). <br>
+Usage:
 
-`name` : A `String` that is unique and to which the Osmation URL is matched against. <br>
+```js
+var osmationObj = new Osmation("name", "https://example.com");
+```
 
-`url` : A `String` that is unique which is to be stored and is matched against `name`. <br>
+### Records
 
-`category` : An `Array` that holds the categories to which the Osmation (record) belongs to for those apps that support sorting based on category. If not given, will have an `empty Array` as default value.<br>
+This class returns an object that can do various tasks.
 
-### Remove data (Osmation): `removeOsmation()`
+Usage:
+```js
+let records = new Records();
+```
 
-Function call as: <br>
-`removeOsmation(db, name, url, category)`
+#### Add data
 
-Parameters: <br>
+Data can be added using the `addRecord` method.
+`addRecord` requires a record of type `Osmation` which can be created using the class `Osmation`. [See above](#osmation)
 
-`db`: An `Array` that holds all the other database records (Osmations). <br>
+Usage:
+```js
+records.addRecord(osmationObj);
+```
 
-`name` : A `String` that is unique and to which the Osmation URL is matched against. <br>
+If success, returns nothing, else returns an Object with the keys: `Status`, `Remark` and `Return`.
 
-`url` : A `String` that is unique which is to be stored and is matched against `name`. <br>
+#### Remove Data
 
-`category` : An `Array` that holds the categories to which the Osmation (record) belongs to for those apps that support sorting based on category. <br>
+Removal of data can be done on the basis of `name` and `url`.
 
-### Edit data (Osmation): `editOsmation`
+If success, returns nothing, else returns an Object with the keys: `Status`, `Remark` and `Return`.
 
-Function call as: <br>
-`editOsmation(db, old_name, new_name, url, category = [])`
+##### removeRecordByName
 
-Parameters: <br>
+Accepting `name`, it looks into the records. If found, removes the record with the found `name`.
 
-`db`: An `Array` that holds all the other database records (Osmations). <br>
+Usage:
+```js
+records.removeRecordByName("name");
+```
 
-`old_name` : A `String` that is unique and to which the Osmation URL was matched against and is to be replaced with. <br>
+##### removeRecordByUrl
 
-`old_name` : A `String` that is unique and to which the Osmation URL is to be matched against and replaces the old name. <br>
+Accepting `name`, it looks into the records. If found, removes the record with the found `name`.
 
-`url` : A `String` that is unique which is to be stored and is matched against `name`. <br>
+Usage:
+```js
+records.removeRecordByUrl(url);
+```
 
-`category` : An `Array` that holds the categories to which the Osmation (record) belongs to for those apps that support sorting based on category. If not given, will have an `empty Array` as default value.<br>
+#### Edit data
 
-### Create Omio Structure: `createOmio()`
+First, remove the data. Then, add the new data.
 
-Function call as: <br>
-`createOmio(db)`
+#### Filter by categories.
 
-Parameters: <br>
+It is possible to fetch multiple records at once based on categories by using `filterByCategory` method. Accepts `categories` of type `Array`.
 
-`db`: An `Array` that holds all the other database records (Osmations). <br>
+Usage:
+```js
+let dataset = records.filterByCategory([]);
+```
+
+**Note**
+It is to be noted that if an empty `Array` is provided, instead of an `Object` with the `category` as key and matching records as value, an `Array` of ALL records will be returned.
+
+If success, returns nothing, else returns an Object with the keys: `Status`, `Remark` and `Return`.
+
+#### Get data
+
+It is possible to get data based on `name` and `url`.
+
+If success, returns nothing, else returns an Object with the keys: `Status`, `Remark` and `Return`.
+
+##### getByName
+
+Get data based on `name`. Accepts `name` which must be `string`.
+
+Usage:
+```js
+let dataByName = records.getByName("name");
+```
+
+##### getByUrl
+
+Get data based on `url`. Accepts `url` which must be `string`.
+
+Usage:
+```js
+let DataByUrl = records.getByUrl("https://example.com");
+```

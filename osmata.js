@@ -151,21 +151,30 @@ class Records {
 
   constructor() {}
 
-  addElement(record) {
+  addRecord(record) {
     /// Add an element to the record.
 
-    if (!checkType(record, "Osmation")["Return"][0]) {
+    if (!(record instanceof Osmation)) {
       return {
         Status: "Error",
         Remark: "The record must be created with the class Osmation.",
         Return: [this],
       };
     } else {
+      for (let _record in this.records) {
+        if ((record.name === _record.name) || (record.url === _record.url)) {
+          return {
+            "Status": "Fail",
+            "Remark": "Record with same name/url s already present in the db.",
+            "Returner": [this]
+          };
+        }
+      }
       this.records.push(record);
     }
   }
 
-  removeElementByName(name) {
+  removeRecordByName(name) {
     /// Remove an element from the record based on the name.
     if (!checkType(name, "string")["Return"][0]) {
       return {
@@ -180,9 +189,21 @@ class Records {
         break;
       }
     }
+    if (returner.length === 0) {
+      return {
+        "Status": "Fail",
+        "Remark": "Not found.",
+        "Return": [this]
+      };
+    }
+    return {
+      "Status": "Success",
+      "Remark": "Found.",
+      "Return": [this]
+    };
   }
 
-  removeElementByUrl(url) {
+  removeRecordByUrl(url) {
     /// Remove an element from the record based on the url.
     if (!checkType(url, "string")["Return"][0]) {
       return {
@@ -205,6 +226,11 @@ class Records {
         let _ = this.records.splice(this.records.indexOf(record));
       }
     }
+    return {
+      "Status": "Fail",
+      "Remark": "Not found.",
+      "Return": this
+    };
   }
 
   filterByCategory(categories = []) {
@@ -228,6 +254,14 @@ class Records {
       };
     }
 
+    if (categories.length === 0) {
+      return {
+        "Status": "Success",
+        "Remark": "Found.",
+        "Return": [this.records, this]
+      };
+    }
+
     for (let record in this.records) {
       for (let category in categories) {
         if (category in record.categories) {
@@ -238,5 +272,86 @@ class Records {
         }
       }
     }
+    if (returner.keys().length === 0) {
+      return {
+        "Status": "Fail",
+        "Remark": "Not found.",
+        "Return": [this]
+      };
+    }
+    return {
+      "Status": "Success",
+      "Remark": "Found.",
+      "Return": [returner, this]
+    };
+  }
+
+  getByName(name) {
+    let returner = []
+    if (!checkType(name, "string")["Return"][0]) {
+      return {
+        Status: "Error",
+        Remark: "The name must be a string.",
+        Return: [this],
+      };
+    }
+    for (let record in this.records) {
+      if (record.name === name) {
+        returner.push(record);
+        break;
+      }
+    }
+    if (returner.length === 0) {
+      return {
+        "Status": "Fail",
+        "Remark": "Not found.",
+        "Return": [this]
+      };
+    }
+    return {
+      "Status": "Success",
+      "Remark": "Found.",
+      "Return": [returner, this]
+    };
+  }
+
+  getByUrl(url) {
+    let returner = []
+    if (!checkType(url, "string")["Return"][0]) {
+      return {
+        Status: "Error",
+        Remark: "The url must be a string.",
+        Return: [this],
+      };
+    }
+
+    if (!isValidUrl(url)) {
+      return {
+        Status: "Error",
+        Remark: "Invalid url.",
+        Return: [this],
+      };
+    }
+
+    for (let record in this.records) {
+      if (record.url === url) {
+        returner.push(record);
+        break;
+      }
+    }
+    if (returner.length === 0) {
+      return {
+        "Status": "Fail",
+        "Remark": "Not found.",
+        "Return": [this]
+      };
+    }
+    return {
+      "Status": "Success",
+      "Remark": "Found.",
+      "Return": [returner, this]
+    };
   }
 }
+
+export { checkType, isValidUrl, Osmation, Records };

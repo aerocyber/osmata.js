@@ -4,11 +4,13 @@ JS bindings for osmata.
 
 ## About
 
+```
 Version (latest): 1.0.0
 Author: aerocyber
 Npm version: 1.0.0
 LICENSE: MIT License.
 Full License text: See LICENSE file or [https://opensource.org/licenses/MIT](https://opensource.org/licenses/MIT)
+```
 
 ## Installation
 

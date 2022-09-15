@@ -1,8 +1,8 @@
 {
   "name": "osmata",
-  "version": "0.1.1",
-  "description": "Bindings which help create, manage, import and export omio files.",
-  "main": "index.js",
+  "version": "1.0.0",
+  "description": "Javascript bindings of osmata, an open source bookmark manager.",
+  "main": "osmata.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -19,8 +19,9 @@
   "bugs": {
     "url": "https://github.com/aerocyber/osmata.js/issues"
   },
-  "homepage": "https://github.com/aerocyber/osmata.js#readme",
+  "homepage": "https://github.com/aerocyber/osmata.js",
+  "packageManager": "yarn@3.2.3",
   "devDependencies": {
-    "prettier": "2.6.2"
+    "prettier": "2.7.1"
   }
 }

@@ -23,7 +23,12 @@ osmata.js acan take care of adding an osmation, editing an osmation, deleting an
 ### Usage
 
 ```javascript
-import { addOsmation, removeOsmation, editOsmation, createOmio } from 'osmata.js'
+import {
+  addOsmation,
+  removeOsmation,
+  editOsmation,
+  createOmio,
+} from "osmata.js";
 ```
 
 ### Add data (Osmation): `addOsmation()` function
